@@ -39,9 +39,11 @@ export default class Album extends Component {
               if (index > 0) {
                 return (
                   <MusicCard
+                    infos={ infos }
                     trackName={ musica.trackName }
                     key={ musica.trackName }
                     previewUrl={ musica.previewUrl }
+                    trackId={ musica.trackId }
                   />
                 );
               } return null;
