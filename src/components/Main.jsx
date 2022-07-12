@@ -14,7 +14,8 @@ export default class Main extends Component {
       <Switch>
         <Route path="/" exact component={ Login } />
         <Route path="/search" component={ Search } />
-        <Route path="/Album" component={ Album } />
+        <Route path="/album/:id" component={ Album } />
+        <Route path="/album" component={ Album } />
         <Route path="/favorites" component={ Favorites } />
         <Route path="/profile/edit" component={ ProfEdit } />
         <Route path="/profile" component={ Profile } />
