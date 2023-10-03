@@ -1,58 +1,60 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import Header from '../components/Header';
 import getMusics from '../services/musicsAPI';
+import Header from '../components/Header';
 import MusicCard from '../components/MusicCard';
 
 export default class Album extends Component {
-  constructor() {
-    super();
-    this.state = {
-      artista: '',
-      infos: [],
-    };
+  state = {
+    album: [],
+    isLoading: true,
+  };
+
+  async componentDidMount() {
+    const { match } = this.props;
+    const { id } = match.params;
+    const data = await getMusics(id);
+    this.setState({ album: data, isLoading: false });
+    console.log('data', data);
   }
 
-  componentDidMount() {
-    this.pegaMusica();
-  }
-
-    pegaMusica = async () => {
-      const { match: { params: { id } } } = this.props;
-      // const { infos, artista } = this.state;
-      const pega = await getMusics(id);
-      this.setState({ infos: [...pega] }, () => {
-        this.setState({ artista: pega[0] });
-        // console.log(artista);
-      });
-    };
-
-    render() {
-      const { infos, artista } = this.state;
-      return (
-        <div data-testid="page-album">
-          <Header />
-          <h1 data-testid="artist-name">{artista.artistName}</h1>
-          <p data-testid="album-name">{artista.collectionName}</p>
-          {
-            infos.map((musica, index) => {
-              if (index > 0) {
-                return (
-                  <MusicCard
-                    infos={ infos }
-                    trackName={ musica.trackName }
-                    key={ musica.trackName }
-                    previewUrl={ musica.previewUrl }
-                    trackId={ musica.trackId }
-                  />
-                );
-              } return null;
-            })
-          }
-        </div>
-      );
+  render() {
+    const { album, isLoading } = this.state;
+    if (isLoading) {
+      return <p>Carregando...</p>;
     }
+    if (!album || album.length === 0) {
+      return (<p>Álbum não encontrado</p>);
+    }
+    return (
+      <div>
+        <Header />
+        <p data-testid="artist-name">
+          { album[0].artistName }
+        </p>
+        <p data-testid="album-name">
+          { album[0].collectionName}
+        </p>
+        <img src={ album[0].artworkUrl100 } alt="capa do album" />
+        {album.slice(1).map((music) => (
+          <MusicCard
+            key={ music.trackId }
+            trackId={ music.trackId }
+            trackName={ music.trackName }
+            previewUrl={ music.previewUrl }
+            artworkUrl100={ music.artworkUrl100 }
+            data={ music } // Adiciona a propriedade "data" ao objeto passado para o componente MusicCard
+          />
+        ))}
+      </div>
+    );
+  }
 }
+
 Album.propTypes = {
-  match: PropTypes.object,
-}.isRequired;
+  match: PropTypes.shape({
+    params: PropTypes.shape({
+      id: PropTypes.string.isRequired,
+    }).isRequired,
+  }).isRequired,
+};
