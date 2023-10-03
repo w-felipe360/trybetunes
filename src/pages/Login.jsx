@@ -1,73 +1,60 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import { Redirect } from 'react-router-dom';
 import { createUser } from '../services/userAPI';
-import Carregando from '../components/Carregando';
+
+const MIN_NAME_LENGTH = 3;
 
 export default class Login extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      InputName: '',
-      button: true,
-      loading: false,
-    };
+  state = {
+    name: '',
+    loading: false,
+    redirect: false,
+  };
+
+  handleChange = (e) => {
+    const { value, name } = e.target;
+    this.setState({ [name]: value });
+  };
+
+  handleSubmit = async (e) => {
+    e.preventDefault();
+    const { name } = this.state;
+    if (name.length >= MIN_NAME_LENGTH) {
+      this.setState({ loading: true });
+      await createUser({ name });
+      this.setState({ redirect: true });
+      this.setState({ loading: false });
+    }
+  };
+
+  render() {
+    const { name, loading, redirect } = this.state;
+
+    if (redirect) {
+      return <Redirect to="/search" />;
+    }
+
+    return (
+      <div data-testid="page-login">
+        <form>
+          <input
+            type="text"
+            placeholder="insert your name"
+            name="name"
+            data-testid="login-name-input"
+            value={ name }
+            onChange={ this.handleChange }
+          />
+          <button
+            onClick={ this.handleSubmit }
+            type="submit"
+            data-testid="login-submit-button"
+            disabled={ name.length < MIN_NAME_LENGTH || loading }
+          >
+            {loading ? 'Carregando...' : 'Entrar'}
+          </button>
+        </form>
+      </div>
+    );
   }
-
- ativaBotao = () => {
-   const { InputName } = this.state;
-   const numeroTres = 3;
-   if (InputName.length >= numeroTres) {
-     return this.setState({ button: false });
-   }
-   return this.setState({ button: true });
- }
-
- escreve = (event) => {
-   this.setState({ [event.target.name]: event.target.value }, () => this.ativaBotao());
- }
-
- voltar = () => {
-   const { history } = this.props;
-   history.push('/search');
- }
-
- criaUser = async () => {
-   this.setState({ loading: true });
-   const { InputName } = this.state;
-   await createUser(
-     {
-       name: InputName,
-     },
-   ); this.setState({ loading: false }, () => this.voltar());
- }
-
- render() {
-   const { InputName, button, loading } = this.state;
-   return (
-     <div data-testid="page-login">
-       <input
-         name="InputName"
-         type="text"
-         value={ InputName }
-         data-testid="login-name-input"
-         onChange={ this.escreve }
-       />
-       <button
-         disabled={ button }
-         type="submit"
-         data-testid="login-submit-button"
-         onClick={ this.criaUser }
-       >
-         Login
-
-       </button>
-       {
-         loading && <Carregando />
-       }
-     </div>
-   );
- }
 }
-Login.propTypes = {
-  history: PropTypes.object,
-}.isRequired;
