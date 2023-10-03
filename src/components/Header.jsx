@@ -1,41 +1,32 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-import Carregando from './Carregando';
+import { Link } from 'react-router-dom/';
 import { getUser } from '../services/userAPI';
 
 export default class Header extends Component {
-  constructor() {
-    super();
-    this.state = {
-      loading: false,
-      valor: '',
-    };
-  }
+  state = {
+    name: '',
+    loading: true,
+  };
 
-  componentDidMount() {
-    this.pegaUser();
-  }
-
-  pegaUser = async () => {
-    this.setState({ loading: true });
-    const pegarUsuario = await getUser();
-    this.setState({ valor: pegarUsuario.name });
-    this.setState({ loading: false });
+  async componentDidMount() {
+    const { name } = await getUser();
+    this.setState({ name, loading: false });
   }
 
   render() {
-    const { loading, valor } = this.state;
+    const { name, loading } = this.state;
     return (
       <header data-testid="header-component">
-        <p data-testid="header-user-name">
-          {valor}
-        </p>
-        {
-          loading && <Carregando />
-        }
-        <Link to="/search" data-testid="link-to-search">Search</Link>
-        <Link to="/favorites" data-testid="link-to-favorites">favorites</Link>
-        <Link to="/profile" data-testid="link-to-profile">profile</Link>
+        <Link data-testid="link-to-search" to="/search">Search</Link>
+        <Link data-testid="link-to-favorites" to="/favorites">favorites</Link>
+        <Link data-testid="link-to-profile" to="/profile">profile</Link>
+        {loading ? ( // renderizando loading e aparecendo name
+          <h1>Carregando...</h1>
+        ) : (
+          <div>
+            <h1 data-testid="header-user-name">{name}</h1>
+          </div>
+        )}
 
       </header>
     );
