@@ -1,91 +1,73 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
-import Carregando from '../components/Carregando';
 import searchAlbumsAPI from '../services/searchAlbumsAPI';
 
 export default class Search extends Component {
-  constructor() {
-    super();
-    this.state = {
-      button: true,
-      InputName: '',
-      loading: false,
-      salvos: [],
-      artistName: '',
-    };
-  }
-
-  ativaBotao = () => {
-    const { InputName } = this.state;
-    const numeroDois = 2;
-    if (InputName.length < numeroDois) {
-      return this.setState({ button: true });
-    }
-    return this.setState({ button: false });
+  state = {
+    inputValue: '',
+    isLoading: false,
+    isSearching: false,
+    artistName: '',
+    albums: [],
   };
 
-  escreve = (event) => {
-    this.setState({ [event.target.name]: event.target.value }, () => this.ativaBotao());
-  }
+  handleInputChange = (event) => {
+    this.setState({ inputValue: event.target.value });
+  };
 
-  clicar = async () => {
-    this.setState({ loading: true });
-    const { InputName } = this.state;
-    const procurar = await searchAlbumsAPI(InputName);
-    this.setState({ artistName: InputName });
-    this.setState({ salvos: procurar });
-    this.setState({ loading: false });
-    this.setState({ InputName: '' });
-  }
+  handleSubmit = async () => {
+    const { inputValue } = this.state;
+    this.setState({ isLoading: true, isSearching: true, artistName: inputValue });
+    const data = await searchAlbumsAPI(inputValue);
+    this.setState({ inputValue: '', isLoading: false, isSearching: false, albums: data });
+  };
 
   render() {
-    const { button, InputName, loading, salvos, artistName } = this.state;
+    const { inputValue, isLoading, isSearching, artistName, albums } = this.state;
+    const isButtonDisabled = inputValue.length < 2;
     return (
       <div data-testid="page-search">
         <Header />
-        <input
-          data-testid="search-artist-input"
-          placeholder="Nome do artista."
-          type="text"
-          name="InputName"
-          value={ InputName }
-          onChange={ this.escreve }
-        />
-        <button
-          onClick={ this.clicar }
-          type="submit"
-          disabled={ button }
-          data-testid="search-artist-button"
-        >
-          {' '}
-          clica em mim!!
-
-        </button>
-        {
-          loading && <Carregando />
-        }
-        {
-          salvos.length > 1
-            ? <h1>{`Resultado de álbuns de: ${artistName}`}</h1>
-            : <p>Nenhum álbum foi encontrado</p>
-        }
-        {
-          salvos.map((album) => (
-            <ul key={ album.collectionId }>
-              <img src={ album.artworkUrl100 } alt={ album.collectionName } />
-              <li>{album.artistName}</li>
+        {!isSearching && (
+          <>
+            <input
+              type="text"
+              value={ inputValue }
+              onChange={ this.handleInputChange }
+              data-testid="search-artist-input"
+            />
+            <button
+              onClick={ this.handleSubmit }
+              type="button"
+              disabled={ isButtonDisabled }
+              data-testid="search-artist-button"
+            >
+              Pesquisar
+            </button>
+          </>
+        )}
+        {isLoading && <p>Carregando...</p>}
+        {!isLoading && !isSearching && artistName && (
+          <p>
+            {`Resultado de álbuns de: ${artistName}`}
+          </p>
+        )}
+        {albums.length > 0 ? albums.map((album) => (
+          <ul key={ album.collectionId }>
+            <Link
+              data-testid={ `link-to-album-${album.collectionId}` }
+              to={ `/album/${album.collectionId}` }
+            >
               <li>{album.collectionName}</li>
-              <Link
-                data-testid={ `link-to-album-${album.collectionId}` }
-                to={ `/album/${album.collectionId}` }
-              >
-                Mais informações
+              <li>{album.artistName}</li>
 
-              </Link>
-            </ul>
-          ))
-        }
+              <img src={ album.artworkUrl100 } alt={ album.collectionName } />
+
+            </Link>
+          </ul>
+        ))
+          : <p> Nenhum álbum foi encontrado </p>}
       </div>
     );
   }
