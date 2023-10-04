@@ -3,23 +3,29 @@ import PropTypes from 'prop-types';
 import getMusics from '../services/musicsAPI';
 import Header from '../components/Header';
 import MusicCard from '../components/MusicCard';
+import { getFavoriteSongs } from '../services/favoriteSongsAPI';
 
-export default class Album extends Component {
+export default class AlbumId extends Component {
   state = {
     album: [],
     isLoading: true,
+    favorites: [],
   };
 
   async componentDidMount() {
     const { match } = this.props;
     const { id } = match.params;
     const data = await getMusics(id);
-    this.setState({ album: data, isLoading: false });
-    console.log('data', data);
+    const favorites = await getFavoriteSongs();
+    this.setState({ album: data, isLoading: false, favorites });
   }
 
+  handleFavorites = (favorites) => {
+    this.setState({ favorites });
+  };
+
   render() {
-    const { album, isLoading } = this.state;
+    const { album, isLoading, favorites } = this.state;
     if (isLoading) {
       return <p>Carregando...</p>;
     }
@@ -43,7 +49,9 @@ export default class Album extends Component {
             trackName={ music.trackName }
             previewUrl={ music.previewUrl }
             artworkUrl100={ music.artworkUrl100 }
-            data={ music } // Adiciona a propriedade "data" ao objeto passado para o componente MusicCard
+            favorites={ favorites }
+            handleFavorites={ this.handleFavorites }
+            music={ music }
           />
         ))}
       </div>
@@ -51,7 +59,7 @@ export default class Album extends Component {
   }
 }
 
-Album.propTypes = {
+AlbumId.propTypes = {
   match: PropTypes.shape({
     params: PropTypes.shape({
       id: PropTypes.string.isRequired,

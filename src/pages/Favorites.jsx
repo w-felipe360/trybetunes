@@ -17,17 +17,19 @@ export default class Favorites extends Component {
     this.setState({ isLoading: true });
     const musics = await getFavoriteSongs();
     this.setState({ favoriteSongs: musics, isLoading: false });
-    console.log('musicas', musics);
   };
 
   updateFavorites = async () => {
     await this.getFavorites();
   };
 
+  handleFavorites = async (favorites) => {
+    this.setState({ favoriteSongs: favorites });
+  };
+
   render() {
     const { isLoading } = this.state;
     const { favoriteSongs } = this.state;
-    console.log('aaaa', favoriteSongs);
     if (isLoading) {
       return <p>Carregando...</p>;
     }
@@ -45,6 +47,8 @@ export default class Favorites extends Component {
             previewUrl={ music.previewUrl }
             artworkUrl100={ music.artworkUrl100 }
             updateFavorites={ this.updateFavorites } // Passa a função updateFavorites como propriedade para o MusicCard
+            favorites={ favoriteSongs }
+            handleFavorites={ this.handleFavorites }
             data={ music } // Adiciona a propriedade "data" ao objeto passado para o componente MusicCard
           />
         ))}
