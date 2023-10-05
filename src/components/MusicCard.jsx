@@ -65,11 +65,11 @@ class MusicCard extends React.Component {
               <code>audio</code>
               .
             </audio>
-            <label htmlFor="favoriteMusic">
+            <label htmlFor={ `favoriteMusic-${trackId}` }>
               <input
                 type="checkbox"
                 name="favoriteMusic"
-                id="favoriteMusic"
+                id={ `favoriteMusic-${trackId}` }
                 data-testid={ `checkbox-music-${trackId}` }
                 onChange={ this.favoriteSongs }
                 checked={ isChecked }
